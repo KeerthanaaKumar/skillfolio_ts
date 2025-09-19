@@ -1,32 +1,46 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './ui/sidebar';
 import { Button } from './ui/button';
 import { MessageCircle, Home, FileText, Calendar, BarChart3, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 interface LayoutProps {
   children: React.ReactNode;
   userType: 'student' | 'faculty';
   currentPage: string;
-  onNavigate: (page: string) => void;
-  onLogout: () => void;
 }
 
-export function Layout({ children, userType, currentPage, onNavigate, onLogout }: LayoutProps) {
+export function Layout({ children, userType, currentPage }: LayoutProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
   const studentNavItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'submissions', label: 'Submissions', icon: FileText },
-    { id: 'events', label: 'Event Discovery', icon: Calendar },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'portfolio', label: 'Portfolio', icon: Settings },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+    { id: 'submissions', label: 'Submissions', icon: FileText, path: '/submissions' },
+    { id: 'events', label: 'Event Discovery', icon: Calendar, path: '/events' },
+    { id: 'reports', label: 'Reports', icon: BarChart3, path: '/reports' },
+    { id: 'portfolio', label: 'Portfolio', icon: Settings, path: '/portfolio' },
   ];
 
   const facultyNavItems = [
-    { id: 'faculty-dashboard', label: 'Dashboard', icon: Home },
-    { id: 'verification', label: 'Verification', icon: FileText },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'faculty-dashboard', label: 'Dashboard', icon: Home, path: '/faculty/dashboard' },
+    { id: 'verification', label: 'Verification', icon: FileText, path: '/faculty/verify' },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/faculty/reports' },
   ];
 
   const navItems = userType === 'student' ? studentNavItems : facultyNavItems;
+  const currentPath = location.pathname;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -39,7 +53,9 @@ export function Layout({ children, userType, currentPage, onNavigate, onLogout }
             </div>
             <div>
               <h1 className="font-bold text-lg text-gray-900">Skillfolio</h1>
-              <p className="text-sm text-gray-500">Smart Student Hub</p>
+              <p className="text-sm text-gray-500">
+                {user?.full_name || user?.username}
+              </p>
             </div>
           </div>
         </div>
@@ -51,9 +67,9 @@ export function Layout({ children, userType, currentPage, onNavigate, onLogout }
               return (
                 <li key={item.id}>
                   <button
-                    onClick={() => onNavigate(item.id)}
+                    onClick={() => handleNavigate(item.path)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      currentPage === item.id
+                      currentPath === item.path
                         ? 'bg-blue-50 text-blue-600 border border-blue-200'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
@@ -69,7 +85,7 @@ export function Layout({ children, userType, currentPage, onNavigate, onLogout }
 
         <div className="absolute bottom-6 left-4 right-4">
           <Button
-            onClick={onLogout}
+            onClick={handleLogout}
             variant="outline"
             className="w-full flex items-center space-x-2"
           >
